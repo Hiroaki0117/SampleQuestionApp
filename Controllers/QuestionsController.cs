@@ -19,10 +19,25 @@ namespace SampleQuestionApp.Controllers
         }
 
         // GET: Questions
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? Selected)
         {
-            var mvcdbContext = _context.Questions.Include(q => q.Genre);
-            return View(await mvcdbContext.ToListAsync());
+
+
+            ViewBag.Genres =
+               new SelectList(_context.Genre, "Id", "Name");
+
+            var questions = from q in _context.Questions select q;
+
+            if (Selected != null)
+            {
+                questions = from q in questions where q.GenreId.Equals(Selected) select q;
+            }
+
+
+
+
+            questions = questions.Include(q => q.Genre);
+            return View(await questions.ToListAsync());
         }
 
         // GET: Questions/Details/5
@@ -47,7 +62,7 @@ namespace SampleQuestionApp.Controllers
         // GET: Questions/Create
         public IActionResult Create()
         {
-            ViewData["GenreId"] = new SelectList(_context.Genre, "Id", "Id");
+            ViewData["GenreId"] = new SelectList(_context.Genre, "Id", "Name");
             return View();
         }
 
@@ -56,7 +71,7 @@ namespace SampleQuestionApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,GenreId")] Question question)
+        public async Task<IActionResult> Create([Bind("Id,Title,Contents,GenreId")] Question question)
         {
             if (ModelState.IsValid)
             {
@@ -64,7 +79,7 @@ namespace SampleQuestionApp.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["GenreId"] = new SelectList(_context.Genre, "Id", "Id", question.GenreId);
+            ViewData["GenreId"] = new SelectList(_context.Genre, "Id", "Name", question.GenreId);
             return View(question);
         }
 
@@ -81,7 +96,7 @@ namespace SampleQuestionApp.Controllers
             {
                 return NotFound();
             }
-            ViewData["GenreId"] = new SelectList(_context.Genre, "Id", "Id", question.GenreId);
+            ViewData["GenreId"] = new SelectList(_context.Genre, "Id", "Name", question.GenreId);
             return View(question);
         }
 
@@ -90,7 +105,7 @@ namespace SampleQuestionApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,GenreId")] Question question)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Contents,GenreId")] Question question)
         {
             if (id != question.Id)
             {
@@ -117,7 +132,7 @@ namespace SampleQuestionApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["GenreId"] = new SelectList(_context.Genre, "Id", "Id", question.GenreId);
+            ViewData["GenreId"] = new SelectList(_context.Genre, "Id", "Name", question.GenreId);
             return View(question);
         }
 
